@@ -48,22 +48,22 @@ public class ParentsFirstShardPrioritization implements
     }
 
     @Override
-    public List<ShardInfo> prioritize(List<ShardInfo> original) {
-        Map<String, ShardInfo> shards = new HashMap<>();
-        for (ShardInfo shardInfo : original) {
+    public <T extends PriorizeableShard> List<T> prioritize(List<T> original) {
+        Map<String, T> shards = new HashMap<>();
+        for (T shardInfo : original) {
             shards.put(shardInfo.getShardId(),
                     shardInfo);
         }
 
-        Map<String, SortingNode> processedNodes = new HashMap<>();
+        Map<String, SortingNode<T>> processedNodes = new HashMap<>();
 
-        for (ShardInfo shardInfo : original) {
+        for (T shardInfo : original) {
             populateDepth(shardInfo.getShardId(),
                     shards,
                     processedNodes);
         }
 
-        List<ShardInfo> orderedInfos = new ArrayList<>(original.size());
+        List<T> orderedInfos = new ArrayList<>(original.size());
 
         List<SortingNode> orderedNodes = new ArrayList<>(processedNodes.values());
         Collections.sort(orderedNodes);
@@ -71,15 +71,15 @@ public class ParentsFirstShardPrioritization implements
         for (SortingNode sortingTreeNode : orderedNodes) {
             // don't process shards with depth > maxDepth
             if (sortingTreeNode.getDepth() <= maxDepth) {
-                orderedInfos.add(sortingTreeNode.shardInfo);
+                orderedInfos.add((T) sortingTreeNode.shardInfo);
             }
         }
         return orderedInfos;
     }
 
-    private int populateDepth(String shardId,
-            Map<String, ShardInfo> shards,
-            Map<String, SortingNode> processedNodes) {
+    private <T extends PriorizeableShard> int populateDepth(String shardId,
+            Map<String, T> shards,
+            Map<String, SortingNode<T>> processedNodes) {
         SortingNode processed = processedNodes.get(shardId);
         if (processed != null) {
             if (processed == PROCESSING_NODE) {
@@ -89,7 +89,7 @@ public class ParentsFirstShardPrioritization implements
             return processed.getDepth();
         }
 
-        ShardInfo shardInfo = shards.get(shardId);
+        T shardInfo = shards.get(shardId);
         if (shardInfo == null) {
             // parent doesn't exist in our list, so this shard is root-level node
             return 0;
@@ -125,12 +125,12 @@ public class ParentsFirstShardPrioritization implements
     /**
      * Class to store depth of shards during prioritization.
      */
-    private static class SortingNode implements
+    private static class SortingNode<T extends PriorizeableShard> implements
             Comparable<SortingNode> {
-        private final ShardInfo shardInfo;
+        private final T shardInfo;
         private final int depth;
 
-        public SortingNode(ShardInfo shardInfo,
+        public SortingNode(T shardInfo,
                 int depth) {
             this.shardInfo = shardInfo;
             this.depth = depth;

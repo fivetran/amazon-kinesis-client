@@ -27,7 +27,7 @@ import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.types.
 /**
  * Used to pass shard related info among different classes and as a key to the map of shard consumers.
  */
-public class ShardInfo {
+public class ShardInfo implements ShardPrioritization.PriorizeableShard {
 
     private final String shardId;
     private final String concurrencyToken;
@@ -86,7 +86,7 @@ public class ShardInfo {
      * 
      * @return a list of shardId's that are parents of this shard, or empty if the shard has no parents.
      */
-    protected List<String> getParentShardIds() {
+    public List<String> getParentShardIds() {
         return new LinkedList<String>(parentShardIds);
     }
 
@@ -95,7 +95,7 @@ public class ShardInfo {
      *
      * @return completion status of the shard
      */
-    protected boolean isCompleted() {
+    public boolean isCompleted() {
         return ExtendedSequenceNumber.SHARD_END.equals(checkpoint);
     }
 

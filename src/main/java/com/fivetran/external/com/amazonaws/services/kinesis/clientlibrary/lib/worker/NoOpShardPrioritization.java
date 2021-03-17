@@ -29,7 +29,7 @@ public class NoOpShardPrioritization implements
     }
 
     @Override
-    public List<ShardInfo> prioritize(List<ShardInfo> original) {
+    public <T extends PriorizeableShard> List<T> prioritize(List<T> original) {
         return original;
     }
 }

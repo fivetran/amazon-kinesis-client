@@ -14,6 +14,7 @@
  */
 package com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.lib.worker;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -29,5 +30,11 @@ public interface ShardPrioritization {
      *            list of shards needed to be prioritized
      * @return new list that contains only shards that should be processed
      */
-    List<ShardInfo> prioritize(List<ShardInfo> original);
+    <T extends PriorizeableShard> List<T> prioritize(List<T> original);
+
+    interface PriorizeableShard {
+        String getShardId();
+        Collection<String> getParentShardIds();
+        boolean isCompleted();
+    }
 }

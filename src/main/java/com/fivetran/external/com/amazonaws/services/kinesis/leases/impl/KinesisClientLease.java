@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.lib.worker.ShardPrioritization;
 import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.types.ExtendedSequenceNumber;
 
 /**
@@ -98,6 +99,11 @@ public class KinesisClientLease extends Lease {
      */
     public Set<String> getParentShardIds() {
         return new HashSet<String>(parentShardIds);
+    }
+
+    @Override
+    public boolean isCompleted() {
+        return ExtendedSequenceNumber.SHARD_END.equals(checkpoint);
     }
 
     /**
