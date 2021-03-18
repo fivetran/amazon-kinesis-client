@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.lib.worker.ParentsFirstShardPrioritization;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -377,8 +378,7 @@ public class LeaseTaker<T extends Lease> implements ILeaseTaker<T> {
             return leasesToTake;
         }
 
-        // Shuffle expiredLeases so workers don't all try to contend for the same leases.
-        Collections.shuffle(expiredLeases);
+        expiredLeases = new ParentsFirstShardPrioritization(Integer.MAX_VALUE).prioritize(expiredLeases);
 
         int originalExpiredLeasesSize = expiredLeases.size();
         if (expiredLeases.size() > 0) {

@@ -65,13 +65,13 @@ public class ParentsFirstShardPrioritization implements
 
         List<T> orderedInfos = new ArrayList<>(original.size());
 
-        List<SortingNode> orderedNodes = new ArrayList<>(processedNodes.values());
+        List<SortingNode<T>> orderedNodes = new ArrayList<>(processedNodes.values());
         Collections.sort(orderedNodes);
 
-        for (SortingNode sortingTreeNode : orderedNodes) {
+        for (SortingNode<T> sortingTreeNode : orderedNodes) {
             // don't process shards with depth > maxDepth
             if (sortingTreeNode.getDepth() <= maxDepth) {
-                orderedInfos.add((T) sortingTreeNode.shardInfo);
+                orderedInfos.add(sortingTreeNode.shardInfo);
             }
         }
         return orderedInfos;
