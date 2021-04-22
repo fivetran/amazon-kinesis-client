@@ -17,17 +17,13 @@ package com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.lib.w
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import org.junit.Test;
 
 import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.types.ExtendedSequenceNumber;
 
-public class ParentsFirstShardPrioritizationUnitTest {
+public abstract class ParentsFirstShardPrioritizationUnitTest<T extends PriorizeableShard> {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMaxDepthNegativeShouldFail() {
@@ -44,6 +40,9 @@ public class ParentsFirstShardPrioritizationUnitTest {
         new ParentsFirstShardPrioritization(1);
     }
 
+    abstract T prioritizable(String shardId, List<String> parentShardIds);
+    abstract T prioritizable(String shardId, String... parentShardIds);
+
     @Test
     public void testSorting() {
         Random random = new Random(987654);
@@ -51,10 +50,10 @@ public class ParentsFirstShardPrioritizationUnitTest {
 
         List<String> shardIdsDependencies = new ArrayList<>();
         shardIdsDependencies.add("unknown");
-        List<ShardInfo> original = new ArrayList<>();
+        List<T> original = new ArrayList<>();
         for (int shardNumber = 0; shardNumber < numberOfShards; shardNumber++) {
             String shardId = shardId(shardNumber);
-            original.add(shardInfo(shardId, shardIdsDependencies));
+            original.add(prioritizable(shardId, shardIdsDependencies));
             shardIdsDependencies.add(shardId);
         }
 
@@ -62,7 +61,7 @@ public class ParentsFirstShardPrioritizationUnitTest {
 
         // shuffle original list as it is already ordered in right way
         Collections.shuffle(original, random);
-        List<ShardInfo> ordered = ordering.prioritize(original);
+        List<T> ordered = ordering.prioritize(original);
 
         assertEquals(numberOfShards, ordered.size());
         for (int shardNumber = 0; shardNumber < numberOfShards; shardNumber++) {
@@ -78,10 +77,10 @@ public class ParentsFirstShardPrioritizationUnitTest {
 
         List<String> shardIdsDependencies = new ArrayList<>();
         shardIdsDependencies.add("unknown");
-        List<ShardInfo> original = new ArrayList<>();
+        List<T> original = new ArrayList<>();
         for (int shardNumber = 0; shardNumber < numberOfShards; shardNumber++) {
             String shardId = shardId(shardNumber);
-            original.add(shardInfo(shardId, shardIdsDependencies));
+            original.add(prioritizable(shardId, shardIdsDependencies));
             shardIdsDependencies.add(shardId);
         }
 
@@ -90,7 +89,7 @@ public class ParentsFirstShardPrioritizationUnitTest {
 
         // shuffle original list as it is already ordered in right way
         Collections.shuffle(original, random);
-        List<ShardInfo> ordered = ordering.prioritize(original);
+        List<T> ordered = ordering.prioritize(original);
         // in this case every shard has its own level, so we don't expect to
         // have more shards than max depth
         assertEquals(maxDepth, ordered.size());
@@ -107,10 +106,10 @@ public class ParentsFirstShardPrioritizationUnitTest {
         int numberOfShards = 10;
 
         String parentId = "unknown";
-        List<ShardInfo> original = new ArrayList<>();
+        List<T> original = new ArrayList<>();
         for (int shardNumber = 0; shardNumber < numberOfShards; shardNumber++) {
             String shardId = shardId(shardNumber);
-            original.add(shardInfo(shardId, parentId));
+            original.add(prioritizable(shardId, parentId));
             parentId = shardId;
         }
 
@@ -118,7 +117,7 @@ public class ParentsFirstShardPrioritizationUnitTest {
 
         // shuffle original list as it is already ordered in right way
         Collections.shuffle(original, random);
-        List<ShardInfo> ordered = ordering.prioritize(original);
+        List<T> ordered = ordering.prioritize(original);
         assertEquals(numberOfShards, ordered.size());
         for (int shardNumber = 0; shardNumber < numberOfShards; shardNumber++) {
             String shardId = shardId(shardNumber);
@@ -137,10 +136,10 @@ public class ParentsFirstShardPrioritizationUnitTest {
 
         // shard-0 will point in middle shard (shard-5) in current test
         String parentId = shardId(numberOfShards / 2);
-        List<ShardInfo> original = new ArrayList<>();
+        List<T> original = new ArrayList<>();
         for (int shardNumber = 0; shardNumber < numberOfShards; shardNumber++) {
             String shardId = shardId(shardNumber);
-            original.add(shardInfo(shardId, parentId));
+            original.add(prioritizable(shardId, parentId));
             parentId = shardId;
         }
 
@@ -197,19 +196,4 @@ public class ParentsFirstShardPrioritizationUnitTest {
         }
     }
 
-    private static ShardInfo shardInfo(String shardId, List<String> parentShardIds) {
-        // copy into new list just in case ShardInfo will stop doing it
-        List<String> newParentShardIds = new ArrayList<>(parentShardIds);
-        return new ShardInfoBuilder()
-                .withShardId(shardId)
-                .withParentShards(newParentShardIds)
-                .build();
-    }
-
-    private static ShardInfo shardInfo(String shardId, String... parentShardIds) {
-        return new ShardInfoBuilder()
-                .withShardId(shardId)
-                .withParentShards(Arrays.asList(parentShardIds))
-                .build();
-    }
 }

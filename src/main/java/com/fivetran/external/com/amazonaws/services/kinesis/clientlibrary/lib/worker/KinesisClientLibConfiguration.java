@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
+import com.fivetran.external.com.amazonaws.services.kinesis.leases.impl.LeaseFetchOrder;
 import org.apache.commons.lang3.Validate;
 
 import com.amazonaws.ClientConfiguration;
@@ -189,6 +190,11 @@ public class KinesisClientLibConfiguration {
      */
     public static final int DEFAULT_MAX_LIST_SHARDS_RETRY_ATTEMPTS = 50;
 
+    /**
+     * How leases should be ordered before acquiring them from the common pool.
+     */
+    public static final LeaseFetchOrder DEFAULT_LEASE_FETCH_ORDER = LeaseFetchOrder.RANDOM;
+
     private String applicationName;
     private String tableName;
     private String streamName;
@@ -237,6 +243,7 @@ public class KinesisClientLibConfiguration {
     private Optional<Long> logWarningForTaskAfterMillis = Optional.empty();
     private long listShardsBackoffTimeInMillis = DEFAULT_LIST_SHARDS_BACKOFF_TIME_IN_MILLIS;
     private int maxListShardsRetryAttempts = DEFAULT_MAX_LIST_SHARDS_RETRY_ATTEMPTS;
+    private LeaseFetchOrder leaseFetchOrder = DEFAULT_LEASE_FETCH_ORDER;
 
     /**
      * Constructor.
@@ -297,7 +304,8 @@ public class KinesisClientLibConfiguration {
                 DEFAULT_METRICS_MAX_QUEUE_SIZE,
                 DEFAULT_VALIDATE_SEQUENCE_NUMBER_BEFORE_CHECKPOINTING,
                 null,
-                DEFAULT_SHUTDOWN_GRACE_MILLIS);
+                DEFAULT_SHUTDOWN_GRACE_MILLIS,
+                DEFAULT_LEASE_FETCH_ORDER);
     }
 
     /**
@@ -367,7 +375,7 @@ public class KinesisClientLibConfiguration {
                 shardSyncIntervalMillis, cleanupTerminatedShardsBeforeExpiry,
                 kinesisClientConfig, dynamoDBClientConfig, cloudWatchClientConfig,
                 taskBackoffTimeMillis, metricsBufferTimeMillis, metricsMaxQueueSize,
-                validateSequenceNumberBeforeCheckpointing, regionName, shutdownGraceMillis);
+                validateSequenceNumberBeforeCheckpointing, regionName, shutdownGraceMillis, DEFAULT_LEASE_FETCH_ORDER);
     }
 
     /**
@@ -430,7 +438,8 @@ public class KinesisClientLibConfiguration {
                                          int metricsMaxQueueSize,
                                          boolean validateSequenceNumberBeforeCheckpointing,
                                          String regionName,
-                                         long shutdownGraceMillis) {
+                                         long shutdownGraceMillis,
+                                         LeaseFetchOrder leaseFetchOrder) {
         // Check following values are greater than zero
         checkIsValuePositive("FailoverTimeMillis", failoverTimeMillis);
         checkIsValuePositive("IdleTimeBetweenReadsInMillis", idleTimeBetweenReadsInMillis);
@@ -477,6 +486,7 @@ public class KinesisClientLibConfiguration {
         this.skipShardSyncAtWorkerInitializationIfLeasesExist = DEFAULT_SKIP_SHARD_SYNC_AT_STARTUP_IF_LEASES_EXIST;
         this.shardPrioritization = DEFAULT_SHARD_PRIORITIZATION;
         this.recordsFetcherFactory = new SimpleRecordsFetcherFactory();
+        this.leaseFetchOrder = leaseFetchOrder;
     }
 
     /**
@@ -586,6 +596,7 @@ public class KinesisClientLibConfiguration {
         this.shardPrioritization = DEFAULT_SHARD_PRIORITIZATION;
         this.recordsFetcherFactory = recordsFetcherFactory;
         this.shutdownGraceMillis = shutdownGraceMillis;
+        this.leaseFetchOrder = DEFAULT_LEASE_FETCH_ORDER;
     }
 
     // Check if value is positive, otherwise throw an exception
@@ -1400,6 +1411,15 @@ public class KinesisClientLibConfiguration {
         return this;
     }
 
+    /**
+     * @param leaseFetchOrder How leases should be ordered before acquiring them from the common pool.
+     * @return
+     */
+    public KinesisClientLibConfiguration withLeaseFetchOrder(LeaseFetchOrder leaseFetchOrder) {
+        this.leaseFetchOrder = leaseFetchOrder;
+        return this;
+    }
+
     public Optional<Integer> getTimeoutInSeconds() {
         return timeoutInSeconds;
     }
@@ -1430,5 +1450,9 @@ public class KinesisClientLibConfiguration {
 
     public int getMaxListShardsRetryAttempts() {
         return maxListShardsRetryAttempts;
+    }
+
+    public LeaseFetchOrder getLeaseFetchOrder() {
+        return leaseFetchOrder;
     }
 }

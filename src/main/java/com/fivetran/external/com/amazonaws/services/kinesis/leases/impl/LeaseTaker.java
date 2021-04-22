@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import com.fivetran.external.com.amazonaws.services.kinesis.leases.interfaces.LeaseOrderer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -64,13 +65,19 @@ public class LeaseTaker<T extends Lease> implements ILeaseTaker<T> {
     private final long leaseDurationNanos;
     private int maxLeasesForWorker = Integer.MAX_VALUE;
     private int maxLeasesToStealAtOneTime = 1;
+    private final LeaseOrderer<T> leaseOrderer;
 
     private long lastScanTimeNanos = 0L;
 
     public LeaseTaker(ILeaseManager<T> leaseManager, String workerIdentifier, long leaseDurationMillis) {
+        this(leaseManager, workerIdentifier, leaseDurationMillis, new LeaseShuffler<>());
+    }
+
+    public LeaseTaker(ILeaseManager<T> leaseManager, String workerIdentifier, long leaseDurationMillis, LeaseOrderer<T> leaseOrderer) {
         this.leaseManager = leaseManager;
         this.workerIdentifier = workerIdentifier;
         this.leaseDurationNanos = TimeUnit.MILLISECONDS.toNanos(leaseDurationMillis);
+        this.leaseOrderer = leaseOrderer;
     }
 
     /**
@@ -377,8 +384,7 @@ public class LeaseTaker<T extends Lease> implements ILeaseTaker<T> {
             return leasesToTake;
         }
 
-        // Shuffle expiredLeases so workers don't all try to contend for the same leases.
-        Collections.shuffle(expiredLeases);
+        expiredLeases = leaseOrderer.order(expiredLeases);
 
         int originalExpiredLeasesSize = expiredLeases.size();
         if (expiredLeases.size() > 0) {

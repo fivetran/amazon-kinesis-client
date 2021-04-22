@@ -19,12 +19,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.lib.worker.PriorizeableShard;
 import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.types.ExtendedSequenceNumber;
 
 /**
  * A Lease subclass containing KinesisClientLibrary related fields for checkpoints.
  */
-public class KinesisClientLease extends Lease {
+public class KinesisClientLease extends Lease implements PriorizeableShard {
 
     private ExtendedSequenceNumber checkpoint;
     private ExtendedSequenceNumber pendingCheckpoint;
@@ -43,9 +44,9 @@ public class KinesisClientLease extends Lease {
         this.parentShardIds.addAll(other.getParentShardIds());
     }
 
-    KinesisClientLease(String leaseKey, String leaseOwner, Long leaseCounter, UUID concurrencyToken,
-            Long lastCounterIncrementNanos, ExtendedSequenceNumber checkpoint, ExtendedSequenceNumber pendingCheckpoint,
-            Long ownerSwitchesSinceCheckpoint, Set<String> parentShardIds) {
+    public KinesisClientLease(String leaseKey, String leaseOwner, Long leaseCounter, UUID concurrencyToken,
+          Long lastCounterIncrementNanos, ExtendedSequenceNumber checkpoint, ExtendedSequenceNumber pendingCheckpoint,
+          Long ownerSwitchesSinceCheckpoint, Set<String> parentShardIds) {
         super(leaseKey, leaseOwner, leaseCounter, concurrencyToken, lastCounterIncrementNanos);
 
         this.checkpoint = checkpoint;
@@ -93,11 +94,21 @@ public class KinesisClientLease extends Lease {
         return ownerSwitchesSinceCheckpoint;
     }
 
+    @Override
+    public String getShardId() {
+        return getLeaseKey();
+    }
+
     /**
      * @return shardIds that parent this lease. Used for resharding.
      */
     public Set<String> getParentShardIds() {
         return new HashSet<String>(parentShardIds);
+    }
+
+    @Override
+    public boolean isCompleted() {
+        return ExtendedSequenceNumber.SHARD_END.equals(checkpoint);
     }
 
     /**

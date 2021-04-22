@@ -22,6 +22,7 @@ import static org.junit.Assert.fail;
 
 import java.util.Date;
 
+import com.fivetran.external.com.amazonaws.services.kinesis.leases.impl.LeaseFetchOrder;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -86,7 +87,8 @@ public class KinesisClientLibConfigurationTest {
                         TEST_VALUE_INT,
                         skipCheckpointValidationValue,
                         null,
-                        TEST_VALUE_LONG);
+                        TEST_VALUE_LONG,
+                        LeaseFetchOrder.RANDOM);
     }
 
     @Test
@@ -126,7 +128,8 @@ public class KinesisClientLibConfigurationTest {
                                 TEST_VALUE_INT,
                                 skipCheckpointValidationValue,
                                 null,
-                                longValues[6]);
+                                longValues[6],
+                                LeaseFetchOrder.RANDOM);
             } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             }
@@ -161,7 +164,8 @@ public class KinesisClientLibConfigurationTest {
                                 intValues[1],
                                 skipCheckpointValidationValue,
                                 null,
-                                TEST_VALUE_LONG);
+                                TEST_VALUE_LONG,
+                                LeaseFetchOrder.RANDOM);
             } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             }
