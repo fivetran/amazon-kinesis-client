@@ -22,6 +22,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import com.fivetran.external.com.amazonaws.services.kinesis.leases.impl.LeaseShuffler;
+import com.fivetran.external.com.amazonaws.services.kinesis.leases.interfaces.LeaseOrderer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -86,6 +88,18 @@ class KinesisClientLibLeaseCoordinator extends LeaseCoordinator<KinesisClientLea
         this.leaseManager = leaseManager;
     }
 
+    public KinesisClientLibLeaseCoordinator(ILeaseManager<KinesisClientLease> leaseManager,
+            String workerIdentifier,
+            long leaseDurationMillis,
+            long epsilonMillis,
+            int maxLeasesForWorker,
+            int maxLeasesToStealAtOneTime,
+            int maxLeaseRenewerThreadCount,
+            IMetricsFactory metricsFactory) {
+        this(leaseManager, workerIdentifier, leaseDurationMillis, epsilonMillis, maxLeasesForWorker,
+                maxLeasesToStealAtOneTime, maxLeaseRenewerThreadCount, metricsFactory, new LeaseShuffler<>());
+    }
+
     /**
      * @param leaseManager Lease manager which provides CRUD lease operations.
      * @param workerIdentifier Used to identify this worker process
@@ -102,9 +116,10 @@ class KinesisClientLibLeaseCoordinator extends LeaseCoordinator<KinesisClientLea
             int maxLeasesForWorker,
             int maxLeasesToStealAtOneTime,
             int maxLeaseRenewerThreadCount,
-            IMetricsFactory metricsFactory) {
+            IMetricsFactory metricsFactory,
+            LeaseOrderer<KinesisClientLease> leaseOrderer) {
         super(leaseManager, workerIdentifier, leaseDurationMillis, epsilonMillis, maxLeasesForWorker,
-                maxLeasesToStealAtOneTime, maxLeaseRenewerThreadCount, metricsFactory);
+                maxLeasesToStealAtOneTime, maxLeaseRenewerThreadCount, metricsFactory, leaseOrderer);
         this.leaseManager = leaseManager;
     }
 

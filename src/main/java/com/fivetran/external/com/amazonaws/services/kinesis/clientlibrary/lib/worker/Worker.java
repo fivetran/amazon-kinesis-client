@@ -31,6 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
+import com.fivetran.external.com.amazonaws.services.kinesis.leases.impl.*;
+import com.fivetran.external.com.amazonaws.services.kinesis.leases.interfaces.LeaseOrderer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,8 +58,6 @@ import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.interf
 import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.proxies.IKinesisProxy;
 import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.proxies.KinesisProxy;
 import com.fivetran.external.com.amazonaws.services.kinesis.leases.exceptions.LeasingException;
-import com.fivetran.external.com.amazonaws.services.kinesis.leases.impl.KinesisClientLease;
-import com.fivetran.external.com.amazonaws.services.kinesis.leases.impl.KinesisClientLeaseManager;
 import com.fivetran.external.com.amazonaws.services.kinesis.leases.interfaces.ILeaseManager;
 import com.fivetran.external.com.amazonaws.services.kinesis.metrics.impl.CWMetricsFactory;
 import com.fivetran.external.com.amazonaws.services.kinesis.metrics.impl.NullMetricsFactory;
@@ -1199,6 +1199,8 @@ public class Worker implements Runnable {
                 workerStateChangeListener = DEFAULT_WORKER_STATE_CHANGE_LISTENER;
             }
 
+            LeaseOrderer<KinesisClientLease> leaseOrderer = config.getLeaseFetchOrder() == LeaseFetchOrder.PARENTS_FIRST ? new LeasePrioritizer() : new LeaseShuffler<>();
+
             return new Worker(config.getApplicationName(),
                     recordProcessorFactory,
                     config,
@@ -1220,7 +1222,8 @@ public class Worker implements Runnable {
                             config.getMaxLeasesForWorker(),
                             config.getMaxLeasesToStealAtOneTime(),
                             config.getMaxLeaseRenewalThreads(),
-                            metricsFactory)
+                            metricsFactory,
+                            leaseOrderer)
                             .withInitialLeaseTableReadCapacity(config.getInitialLeaseTableReadCapacity())
                             .withInitialLeaseTableWriteCapacity(config.getInitialLeaseTableWriteCapacity()),
                     execService,

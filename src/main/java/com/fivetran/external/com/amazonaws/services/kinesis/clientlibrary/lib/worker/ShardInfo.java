@@ -27,7 +27,7 @@ import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.types.
 /**
  * Used to pass shard related info among different classes and as a key to the map of shard consumers.
  */
-public class ShardInfo implements ShardPrioritization.PriorizeableShard {
+public class ShardInfo implements PriorizeableShard {
 
     private final String shardId;
     private final String concurrencyToken;

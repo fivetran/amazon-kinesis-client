@@ -14,13 +14,10 @@
  */
 package com.fivetran.external.com.amazonaws.services.kinesis.leases.impl;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.util.json.Jackson;
-import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.lib.worker.ShardPrioritization;
 
 /**
  * This class contains data pertaining to a Lease. Distributed systems may use leases to partition work across a
@@ -29,7 +26,7 @@ import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.lib.wo
  * processing the corresponding unit of work, or until it fails. When the worker stops holding the lease, another worker will
  * take and hold the lease.
  */
-public class Lease implements ShardPrioritization.PriorizeableShard {
+public class Lease {
     /*
      * See javadoc for System.nanoTime - summary:
      * 
@@ -252,20 +249,5 @@ public class Lease implements ShardPrioritization.PriorizeableShard {
         if (object == null) {
             throw new IllegalArgumentException(message);
         }
-    }
-
-    @Override
-    public String getShardId() {
-        return leaseKey;
-    }
-
-    @Override
-    public Collection<String> getParentShardIds() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public boolean isCompleted() {
-        return false;
     }
 }

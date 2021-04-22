@@ -19,12 +19,11 @@ import static org.junit.Assert.fail;
 
 import java.util.*;
 
-import com.fivetran.external.com.amazonaws.services.kinesis.leases.impl.KinesisClientLease;
 import org.junit.Test;
 
 import com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.types.ExtendedSequenceNumber;
 
-public abstract class ParentsFirstShardPrioritizationUnitTest<T extends ShardPrioritization.PriorizeableShard> {
+public abstract class ParentsFirstShardPrioritizationUnitTest<T extends PriorizeableShard> {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMaxDepthNegativeShouldFail() {

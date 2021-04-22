@@ -26,6 +26,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.fivetran.external.com.amazonaws.services.kinesis.leases.interfaces.LeaseOrderer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -119,6 +120,17 @@ public class LeaseCoordinator<T extends Lease> {
                 KinesisClientLibConfiguration.DEFAULT_MAX_LEASE_RENEWAL_THREADS, metricsFactory);
     }
 
+    public LeaseCoordinator(ILeaseManager<T> leaseManager,
+                            String workerIdentifier,
+                            long leaseDurationMillis,
+                            long epsilonMillis,
+                            int maxLeasesForWorker,
+                            int maxLeasesToStealAtOneTime,
+                            int maxLeaseRenewerThreadCount,
+                            IMetricsFactory metricsFactory) {
+        this(leaseManager, workerIdentifier, leaseDurationMillis, epsilonMillis, maxLeasesForWorker, maxLeasesToStealAtOneTime, maxLeaseRenewerThreadCount, metricsFactory, new LeaseShuffler<>());
+    }
+
     /**
      * Constructor.
      *
@@ -137,9 +149,10 @@ public class LeaseCoordinator<T extends Lease> {
             int maxLeasesForWorker,
             int maxLeasesToStealAtOneTime,
             int maxLeaseRenewerThreadCount,
-            IMetricsFactory metricsFactory) {
+            IMetricsFactory metricsFactory,
+            LeaseOrderer<T> leaseOrderer) {
         this.leaseRenewalThreadpool = getLeaseRenewalExecutorService(maxLeaseRenewerThreadCount);
-        this.leaseTaker = new LeaseTaker<T>(leaseManager, workerIdentifier, leaseDurationMillis)
+        this.leaseTaker = new LeaseTaker<T>(leaseManager, workerIdentifier, leaseDurationMillis, leaseOrderer)
                 .withMaxLeasesForWorker(maxLeasesForWorker)
                 .withMaxLeasesToStealAtOneTime(maxLeasesToStealAtOneTime);
         this.leaseRenewer = new LeaseRenewer<T>(
