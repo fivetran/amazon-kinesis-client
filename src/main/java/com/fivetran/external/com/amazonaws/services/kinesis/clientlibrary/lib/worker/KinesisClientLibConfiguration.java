@@ -1413,7 +1413,6 @@ public class KinesisClientLibConfiguration {
 
     /**
      * @param leaseFetchOrder How leases should be ordered before acquiring them from the common pool.
-     *                                   in {@link com.fivetran.external.com.amazonaws.services.kinesis.clientlibrary.proxies.KinesisProxy}.
      * @return
      */
     public KinesisClientLibConfiguration withLeaseFetchOrder(LeaseFetchOrder leaseFetchOrder) {

@@ -45,8 +45,8 @@ public class KinesisClientLease extends Lease implements PriorizeableShard {
     }
 
     public KinesisClientLease(String leaseKey, String leaseOwner, Long leaseCounter, UUID concurrencyToken,
-                              Long lastCounterIncrementNanos, ExtendedSequenceNumber checkpoint, ExtendedSequenceNumber pendingCheckpoint,
-                              Long ownerSwitchesSinceCheckpoint, Set<String> parentShardIds) {
+          Long lastCounterIncrementNanos, ExtendedSequenceNumber checkpoint, ExtendedSequenceNumber pendingCheckpoint,
+          Long ownerSwitchesSinceCheckpoint, Set<String> parentShardIds) {
         super(leaseKey, leaseOwner, leaseCounter, concurrencyToken, lastCounterIncrementNanos);
 
         this.checkpoint = checkpoint;
