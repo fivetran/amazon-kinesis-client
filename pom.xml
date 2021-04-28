@@ -44,8 +44,18 @@
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-sts</artifactId>
+      <version>${aws-java-sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-cloudwatch</artifactId>
       <version>${aws-java-sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>dynamodb-streams-kinesis-adapter</artifactId>
+      <version>1.4.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
